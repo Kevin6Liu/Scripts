@@ -1,0 +1,49 @@
+# in each folder under directory src/, there is a patch.diff file
+# each represents a solution to a buggy source file
+# but need to filter out the duplicated ones
+import os
+import filecmp
+
+
+all_files = []
+file_list = []
+unique_list = []
+PATH = 'src/'
+PATCHES = set()
+UNIQUE = True
+
+all_files = os.listdir(PATH)
+
+
+# read files, leave the original code
+for file in  all_files:
+    if file != 'default' and file != 'default_f':
+         if not file.endswith('_f'):
+            file_list.append(file)
+    file_list.sort()
+
+print("Load files:" + str(file_list))
+print(f"Total number of files: {len(file_list)}")
+
+with open('Difference.txt','w+') as f:
+    unique_list.append(file_list[0]) # Add the first variant
+    # Determine whether the file is unique, result stored in unique_list
+    for i in range(1,len(file_list)): # file_list[i] is the file that is going to add (if not duplicate)
+        for j in range(len(unique_list)): # unique_list[j] is the file that is going to compare with file_list[i]
+            UNIQUE = UNIQUE and not filecmp.cmp(PATH + file_list[i] + '/patch.diff', PATH + unique_list[j] + '/patch.diff')
+        print(f"Add {str(file_list[i])} to list?: {UNIQUE}")        
+        if UNIQUE: 
+            unique_list.append(file_list[i])
+        else:
+            UNIQUE = not UNIQUE
+    # write the unique patch content to txt file
+    for i in range(len(unique_list)):
+        with open(PATH + unique_list[i] + '/patch.diff') as r:
+            for line in r:
+                f.write(str(line).strip("\n\t") + "\n")
+    
+    f.write(f"The number of unique patches: {len(unique_list)}")
+           
+     
+print(f"The number of patches: {len(unique_list)}")
+print(unique_list)           
